@@ -14,6 +14,7 @@ import net.floodlightcontroller.core.module.FloodlightModuleContext;
 import net.floodlightcontroller.core.module.FloodlightModuleException;
 import net.floodlightcontroller.core.module.IFloodlightModule;
 import net.floodlightcontroller.core.module.IFloodlightService;
+import net.floodlightcontroller.mactracker.web.MACTrackerWebRoutable;
 
 import net.floodlightcontroller.core.IFloodlightProviderService;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule {
     protected IFloodlightProviderService floodlightProvider;
     protected Set<Long> macAddresses;
     protected static Logger logger;
+    protected IRestApiService restApiService;
  
     @Override
     public String getName() {
@@ -64,6 +66,7 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule {
         Collection<Class<? extends IFloodlightService>> l =
             new ArrayList<Class<? extends IFloodlightService>>();
         l.add(IFloodlightProviderService.class);
+        l.add(IRestApiService.class);
         return l;
     }
  
@@ -72,12 +75,14 @@ public class MACTracker implements IOFMessageListener, IFloodlightModule {
         floodlightProvider = context.getServiceImpl(IFloodlightProviderService.class);
         macAddresses = new ConcurrentSkipListSet<Long>();
         logger = LoggerFactory.getLogger(MACTracker.class);
+        restApiService = context.getServiceImpl(IRestApiService.class);
     }
  
     
     @Override
     public void startUp(FloodlightModuleContext context) {
         floodlightProvider.addOFMessageListener(OFType.PACKET_IN, this);
+        restApiService.addRestletRoutable(new MACTrackerWebRoutable());
     }
  
     
